@@ -5,5 +5,6 @@ data class Horario(
     val fecha: String = "",
     val horaInicio: String = "",
     val horaFin: String = "",
-    val capacidad: Int = 0
+    val capacidad: Int = 0,
+    val cuposOcupados: Int = 0
 )

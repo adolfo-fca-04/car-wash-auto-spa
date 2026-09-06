@@ -13,11 +13,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun ConfirmarReservaScreen(
-    usuarioId: String,
+    clienteId: String,
     vehiculoId: String,
     servicioId: String,
+    servicioNombre: String,
     fecha: String,
     horarioId: String,
+    horaTexto: String,
     capacidadMaxima: Int,
     onReservaExitosa: () -> Unit,
     onBack: () -> Unit
@@ -33,6 +35,11 @@ fun ConfirmarReservaScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text("Servicio: $servicioNombre")
+        Text("Fecha: $fecha   Hora: $horaTexto")
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         if (cargando) {
             CircularProgressIndicator()
         } else {
@@ -41,11 +48,13 @@ fun ConfirmarReservaScreen(
                     cargando = true
                     procesarReservaConTransaccion(
                         db = db,
-                        usuarioId = usuarioId,
+                        clienteId = clienteId,
                         vehiculoId = vehiculoId,
                         servicioId = servicioId,
+                        servicioNombre = servicioNombre,
                         fecha = fecha,
                         horarioId = horarioId,
+                        horaTexto = horaTexto,
                         capacidadMaxima = capacidadMaxima,
                         onSuccess = {
                             cargando = false
@@ -63,7 +72,6 @@ fun ConfirmarReservaScreen(
             }
         }
 
-        // VENTANA EMERGENTE (DIÁLOGO DE ERROR)
         if (mensajeError != null) {
             AlertDialog(
                 onDismissRequest = { mensajeError = null },
@@ -79,14 +87,15 @@ fun ConfirmarReservaScreen(
     }
 }
 
-// LÓGICA DE TRANSACCIÓN ATÓMICA (FUERA DE COMPOSABLE)
 fun procesarReservaConTransaccion(
     db: FirebaseFirestore,
-    usuarioId: String,
+    clienteId: String,
     vehiculoId: String,
     servicioId: String,
+    servicioNombre: String,
     fecha: String,
     horarioId: String,
+    horaTexto: String,
     capacidadMaxima: Int,
     onSuccess: () -> Unit,
     onError: (String) -> Unit
@@ -104,7 +113,6 @@ fun procesarReservaConTransaccion(
     val horarioRef = db.collection("horarios").document(horarioId)
     val nuevaReservaRef = db.collection("reservas").document()
 
-    // Transacción atómica
     db.runTransaction { transaction ->
         val horarioSnapshot = transaction.get(horarioRef)
         val cuposOcupados = horarioSnapshot.getLong("cuposOcupados") ?: 0L
@@ -115,11 +123,13 @@ fun procesarReservaConTransaccion(
 
         val datosReserva = mapOf(
             "id" to nuevaReservaRef.id,
-            "usuarioId" to usuarioId,
+            "clienteId" to clienteId,
             "vehiculoId" to vehiculoId,
             "servicioId" to servicioId,
-            "fecha" to fecha,
+            "servicioNombre" to servicioNombre,
             "horarioId" to horarioId,
+            "fecha" to fecha,
+            "hora" to horaTexto,
             "estado" to "RESERVADA",
             "timestamp" to Timestamp.now()
         )

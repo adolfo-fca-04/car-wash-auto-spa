@@ -17,7 +17,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServiciosScreen(
-    onServicioSeleccionado: (String) -> Unit, // Pasa el id del servicio seleccionado
+    onServicioSeleccionado: (String, String) -> Unit, // Pasa id y nombre del servicio
     onBack: () -> Unit
 ) {
     val db = FirebaseFirestore.getInstance()
@@ -63,7 +63,7 @@ fun ServiciosScreen(
                     items(listaServicios) { servicio ->
                         ServicioCard(
                             servicio = servicio,
-                            onSeleccionar = { onServicioSeleccionado(servicio.id) }
+                            onSeleccionar = { onServicioSeleccionado(servicio.id, servicio.nombre) }
                         )
                     }
                 }

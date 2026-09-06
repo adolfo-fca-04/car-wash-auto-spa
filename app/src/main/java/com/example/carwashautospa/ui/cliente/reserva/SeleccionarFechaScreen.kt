@@ -27,7 +27,7 @@ fun SeleccionarFechaScreen(
         { _, year, month, dayOfMonth ->
             val mesFormateado = String.format("%02d", month + 1)
             val diaFormateado = String.format("%02d", dayOfMonth)
-            fechaTexto = "$year-$mesFormateado-$diaFormateado"
+            fechaTexto = "$diaFormateado/$mesFormateado/$year"
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),

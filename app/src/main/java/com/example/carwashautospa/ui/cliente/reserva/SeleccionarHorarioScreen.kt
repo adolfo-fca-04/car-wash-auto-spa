@@ -19,34 +19,44 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun SeleccionarHorarioScreen(
     fecha: String,
-    onHorarioSeleccionado: (String) -> Unit,
+    onHorarioSeleccionado: (Horario) -> Unit,
     onBack: () -> Unit
 ) {
     val db = FirebaseFirestore.getInstance()
     var listaHorarios by remember { mutableStateOf<List<Horario>>(emptyList()) }
     var reservasPorHora by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var cargando by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(fecha) {
-        // 1. Obtener horarios configurados
-        db.collection("horarios").get().addOnSuccessListener { horariosSnapshot ->
-            val horarios = horariosSnapshot.toObjects(Horario::class.java)
-            listaHorarios = horarios
+        cargando = true
+        error = null
+        db.collection("horarios").get()
+            .addOnSuccessListener { horariosSnapshot ->
+                val horarios = horariosSnapshot.toObjects(Horario::class.java)
+                listaHorarios = horarios
 
-            // 2. Obtener reservas hechas para la fecha elegida
-            db.collection("reservas").whereEqualTo("fecha", fecha).get()
-                .addOnSuccessListener { reservasSnapshot ->
-                    val conteo = mutableMapOf<String, Int>()
-                    for (doc in reservasSnapshot.documents) {
-                        val hora = doc.getString("hora") ?: ""
-                        if (hora.isNotEmpty()) {
-                            conteo[hora] = conteo.getOrDefault(hora, 0) + 1
+                db.collection("reservas").whereEqualTo("fecha", fecha).get()
+                    .addOnSuccessListener { reservasSnapshot ->
+                        val conteo = mutableMapOf<String, Int>()
+                        for (doc in reservasSnapshot.documents) {
+                            val hora = doc.getString("hora") ?: ""
+                            if (hora.isNotEmpty()) {
+                                conteo[hora] = conteo.getOrDefault(hora, 0) + 1
+                            }
                         }
+                        reservasPorHora = conteo
+                        cargando = false
                     }
-                    reservasPorHora = conteo
-                    cargando = false
-                }
-        }
+                    .addOnFailureListener { e ->
+                        error = "Error al cargar reservas: ${e.message}"
+                        cargando = false
+                    }
+            }
+            .addOnFailureListener { e ->
+                error = "Error al cargar horarios: ${e.message}"
+                cargando = false
+            }
     }
 
     Scaffold(
@@ -62,6 +72,12 @@ fun SeleccionarHorarioScreen(
         ) {
             if (cargando) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (error != null) {
+                Text(
+                    text = error ?: "Error desconocido",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             } else if (listaHorarios.isEmpty()) {
                 Text(
                     text = "No hay horarios disponibles para esta fecha.",
@@ -78,7 +94,7 @@ fun SeleccionarHorarioScreen(
                         HorarioCard(
                             horario = horario,
                             disponibles = disponibles,
-                            onSeleccionar = { onHorarioSeleccionado(horario.horaInicio) }
+                            onSeleccionar = { onHorarioSeleccionado(horario) }
                         )
                     }
                 }
