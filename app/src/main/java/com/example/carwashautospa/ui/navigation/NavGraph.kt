@@ -11,10 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.carwashautospa.ui.administrador.DashboardAdminScreen
 import com.example.carwashautospa.ui.auth.LoginScreen
-<<<<<<< HEAD
 import com.example.carwashautospa.ui.auth.RegistroScreen
-=======
->>>>>>> 7ad573d5d6d1130cdc15e656fa85c50763f280da
 import com.example.carwashautospa.ui.cliente.InicioClienteScreen
 import com.example.carwashautospa.ui.operario.DashboardOperarioScreen
 import com.google.firebase.auth.FirebaseAuth
@@ -22,10 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
-<<<<<<< HEAD
     object Registro : Screen("registro")
-=======
->>>>>>> 7ad573d5d6d1130cdc15e656fa85c50763f280da
     object SplashAuth : Screen("splash_auth")
     object InicioCliente : Screen("inicio_cliente")
     object DashboardOperario : Screen("dashboard_operario")
@@ -50,17 +44,13 @@ fun AppNavigation() {
                     navController.navigate(Screen.SplashAuth.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-<<<<<<< HEAD
                 },
                 onNavigateToRegistro = {
                     navController.navigate(Screen.Registro.route)
-=======
->>>>>>> 7ad573d5d6d1130cdc15e656fa85c50763f280da
                 }
             )
         }
 
-<<<<<<< HEAD
         // 2. REGISTRO
         composable(Screen.Registro.route) {
             RegistroScreen(
@@ -76,9 +66,6 @@ fun AppNavigation() {
         }
 
         // 3. ¿QUIÉN ES? (Redirección por Rol)
-=======
-        // 2. ¿QUIÉN ES? (Redirección por Rol)
->>>>>>> 7ad573d5d6d1130cdc15e656fa85c50763f280da
         composable(Screen.SplashAuth.route) {
             LaunchedEffect(Unit) {
                 val uid = auth.currentUser?.uid
@@ -137,15 +124,12 @@ fun AppNavigation() {
 
         composable(Screen.DashboardAdmin.route) {
             DashboardAdminScreen(
-<<<<<<< HEAD
                 onCerrarSesion = {
                     auth.signOut()
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
-=======
->>>>>>> 7ad573d5d6d1130cdc15e656fa85c50763f280da
                 onNavigateToUsuarios = { /* Navegar a Usuarios */ },
                 onNavigateToServicios = { /* Navegar a Servicios */ },
                 onNavigateToHorarios = { /* Navegar a Horarios */ },

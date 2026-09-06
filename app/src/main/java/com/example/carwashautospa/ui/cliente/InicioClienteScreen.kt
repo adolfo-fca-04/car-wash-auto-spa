@@ -5,11 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-<<<<<<< HEAD
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-=======
->>>>>>> 7ad573d5d6d1130cdc15e656fa85c50763f280da
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,10 +17,7 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-<<<<<<< HEAD
 @OptIn(ExperimentalMaterial3Api::class)
-=======
->>>>>>> 7ad573d5d6d1130cdc15e656fa85c50763f280da
 @Composable
 fun InicioClienteScreen(
     onCerrarSesion: () -> Unit,
@@ -51,7 +45,6 @@ fun InicioClienteScreen(
         }
     }
 
-<<<<<<< HEAD
     Scaffold(
         topBar = {
             TopAppBar(
@@ -128,79 +121,6 @@ fun InicioClienteScreen(
                 onClick = onNavigateToPerfil
             )
         }
-=======
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Encabezado
-        Text(
-            text = "CAR WASH-AUTO SPA",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Saludo personalizado
-        Text(
-            text = "Hola, $nombreUsuario 👋",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "¿Qué deseas hacer?",
-            fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Botones / Tarjetas de opciones
-        OpcionCard(
-            texto = "🚗 Mis vehículos",
-            onClick = onNavigateToVehiculos
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OpcionCard(
-            texto = "📅 Reservar turno",
-            onClick = onNavigateToReservar
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OpcionCard(
-            texto = "🔄 Seguimiento",
-            onClick = onNavigateToSeguimiento
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OpcionCard(
-            texto = "📋 Historial",
-            onClick = onNavigateToHistorial
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OpcionCard(
-            texto = "👤 Mi perfil",
-            onClick = onNavigateToPerfil
-        )
->>>>>>> 7ad573d5d6d1130cdc15e656fa85c50763f280da
     }
 }
 
