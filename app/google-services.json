@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "273380089160",
+    "project_id": "carwashautospa-a6830",
+    "storage_bucket": "carwashautospa-a6830.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:273380089160:android:5a78d2438da04284a3677d",
+        "android_client_info": {
+          "package_name": "com.example.carwashautospa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvKZdi-AB1-wWwS1t4TV9mpQw93z2r8eE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
