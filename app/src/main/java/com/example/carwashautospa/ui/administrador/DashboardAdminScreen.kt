@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardAdminScreen(
+    onCerrarSesion: () -> Unit = {},
     onNavigateToUsuarios: () -> Unit,
     onNavigateToServicios: () -> Unit,
     onNavigateToHorarios: () -> Unit,
@@ -44,7 +47,19 @@ fun DashboardAdminScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("PANEL ADMINISTRADOR", fontWeight = FontWeight.Bold) }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("PANEL ADMINISTRADOR", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = onCerrarSesion) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Cerrar Sesión"
+                        )
+                    }
+                }
+            )
+        }
     ) { padding ->
         if (cargando) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {

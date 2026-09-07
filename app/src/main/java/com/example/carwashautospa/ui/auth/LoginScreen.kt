@@ -11,7 +11,8 @@ import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
-    onLoginExitoso: () -> Unit
+    onLoginExitoso: () -> Unit,
+    onNavigateToRegistro: () -> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
     var email by remember { mutableStateOf("") }
@@ -77,6 +78,15 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("INGRESAR")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = onNavigateToRegistro,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("¿No tienes cuenta? Regístrate aquí")
             }
         }
 

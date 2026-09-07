@@ -12,28 +12,19 @@ import androidx.navigation.compose.rememberNavController
 import com.example.carwashautospa.data.model.Horario
 import com.example.carwashautospa.ui.administrador.DashboardAdminScreen
 import com.example.carwashautospa.ui.auth.LoginScreen
+import com.example.carwashautospa.ui.auth.RegistroScreen
 import com.example.carwashautospa.ui.cliente.InicioClienteScreen
-import com.example.carwashautospa.ui.cliente.reserva.ConfirmarReservaScreen
-import com.example.carwashautospa.ui.cliente.reserva.SeleccionarFechaScreen
-import com.example.carwashautospa.ui.cliente.reserva.SeleccionarHorarioScreen
-import com.example.carwashautospa.ui.cliente.reserva.SeleccionarVehiculoScreen
-import com.example.carwashautospa.ui.cliente.servicios.ServiciosScreen
 import com.example.carwashautospa.ui.operario.DashboardOperarioScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
+    object Registro : Screen("registro")
     object SplashAuth : Screen("splash_auth")
     object InicioCliente : Screen("inicio_cliente")
     object DashboardOperario : Screen("dashboard_operario")
     object DashboardAdmin : Screen("dashboard_admin")
-
-    object SeleccionarVehiculo : Screen("seleccionar_vehiculo")
-    object SeleccionarServicio : Screen("seleccionar_servicio")
-    object SeleccionarFecha : Screen("seleccionar_fecha")
-    object SeleccionarHorario : Screen("seleccionar_horario")
-    object ConfirmarReserva : Screen("confirmar_reserva")
 }
 
 @Composable
@@ -42,16 +33,12 @@ fun AppNavigation() {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
 
+    // Definir pantalla de inicio según si hay sesión activa
     val startDestination = if (auth.currentUser != null) Screen.SplashAuth.route else Screen.Login.route
-
-    var reservaVehiculoId by remember { mutableStateOf("") }
-    var reservaServicioId by remember { mutableStateOf("") }
-    var reservaServicioNombre by remember { mutableStateOf("") }
-    var reservaFecha by remember { mutableStateOf("") }
-    var reservaHorario by remember { mutableStateOf<Horario?>(null) }
 
     NavHost(navController = navController, startDestination = startDestination) {
 
+        // 1. LOGIN
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginExitoso = {
@@ -62,6 +49,7 @@ fun AppNavigation() {
             )
         }
 
+        // 2. ¿QUIÉN ES? (Redirección por Rol)
         composable(Screen.SplashAuth.route) {
             LaunchedEffect(Unit) {
                 val uid = auth.currentUser?.uid
@@ -95,6 +83,7 @@ fun AppNavigation() {
             }
         }
 
+        // 3. RUTAS SEGÚN ROL
         composable(Screen.InicioCliente.route) {
             InicioClienteScreen(
                 onCerrarSesion = {
@@ -102,14 +91,6 @@ fun AppNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                },
-                onNavigateToReservar = {
-                    reservaVehiculoId = ""
-                    reservaServicioId = ""
-                    reservaServicioNombre = ""
-                    reservaFecha = ""
-                    reservaHorario = null
-                    navController.navigate(Screen.SeleccionarVehiculo.route)
                 }
             )
         }
@@ -127,76 +108,12 @@ fun AppNavigation() {
 
         composable(Screen.DashboardAdmin.route) {
             DashboardAdminScreen(
-                onNavigateToUsuarios = { },
-                onNavigateToServicios = { },
-                onNavigateToHorarios = { },
-                onNavigateToReservas = { },
-                onNavigateToReportes = { }
+                onNavigateToUsuarios = { /* Navegar a Usuarios */ },
+                onNavigateToServicios = { /* Navegar a Servicios */ },
+                onNavigateToHorarios = { /* Navegar a Horarios */ },
+                onNavigateToReservas = { /* Navegar a Reservas */ },
+                onNavigateToReportes = { /* Navegar a Reportes */ }
             )
-        }
-
-        composable(Screen.SeleccionarVehiculo.route) {
-            SeleccionarVehiculoScreen(
-                onVehiculoSeleccionado = { vehiculoId ->
-                    reservaVehiculoId = vehiculoId
-                    navController.navigate(Screen.SeleccionarServicio.route)
-                },
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.SeleccionarServicio.route) {
-            ServiciosScreen(
-                onServicioSeleccionado = { servicioId, servicioNombre ->
-                    reservaServicioId = servicioId
-                    reservaServicioNombre = servicioNombre
-                    navController.navigate(Screen.SeleccionarFecha.route)
-                },
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.SeleccionarFecha.route) {
-            SeleccionarFechaScreen(
-                onFechaSeleccionada = { fecha ->
-                    reservaFecha = fecha
-                    navController.navigate(Screen.SeleccionarHorario.route)
-                },
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.SeleccionarHorario.route) {
-            SeleccionarHorarioScreen(
-                fecha = reservaFecha,
-                onHorarioSeleccionado = { horario ->
-                    reservaHorario = horario
-                    navController.navigate(Screen.ConfirmarReserva.route)
-                },
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.ConfirmarReserva.route) {
-            val horario = reservaHorario
-            if (horario != null) {
-                ConfirmarReservaScreen(
-                    clienteId = auth.currentUser?.uid ?: "",
-                    vehiculoId = reservaVehiculoId,
-                    servicioId = reservaServicioId,
-                    servicioNombre = reservaServicioNombre,
-                    fecha = reservaFecha,
-                    horarioId = horario.id,
-                    horaTexto = horario.horaInicio,
-                    capacidadMaxima = horario.capacidad,
-                    onReservaExitosa = {
-                        navController.navigate(Screen.InicioCliente.route) {
-                            popUpTo(Screen.InicioCliente.route) { inclusive = true }
-                        }
-                    },
-                    onBack = { navController.popBackStack() }
-                )
-            }
         }
     }
 }
