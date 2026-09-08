@@ -2,10 +2,15 @@ package com.example.carwashautospa.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import com.airbnb.lottie.compose.*
+import com.example.carwashautospa.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -41,8 +46,8 @@ fun AppNavigation() {
     val auth = FirebaseAuth.getInstance()
     val db = FirebaseFirestore.getInstance()
 
-    // Definir pantalla de inicio según si hay sesión activa
-    val startDestination = if (auth.currentUser != null) Screen.SplashAuth.route else Screen.Login.route
+    // El Splash siempre será la pantalla de inicio
+    val startDestination = Screen.SplashAuth.route
 
     NavHost(navController = navController, startDestination = startDestination) {
 
@@ -74,9 +79,18 @@ fun AppNavigation() {
             )
         }
 
-        // 2. ¿QUIÉN ES? (Redirección por Rol)
+        // 2. ¿QUIÉN ES? (Splash Screen con Animación)
         composable(Screen.SplashAuth.route) {
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.carwash_anim))
+            val progress by animateLottieCompositionAsState(
+                composition = composition,
+                iterations = LottieConstants.IterateForever
+            )
+
             LaunchedEffect(Unit) {
+                // Tiempo mínimo de visualización (3 segundos)
+                delay(3000)
+
                 val uid = auth.currentUser?.uid
                 if (uid != null) {
                     db.collection("usuarios").document(uid).get()
@@ -103,8 +117,15 @@ fun AppNavigation() {
                 }
             }
 
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.size(250.dp)
+                )
             }
         }
 

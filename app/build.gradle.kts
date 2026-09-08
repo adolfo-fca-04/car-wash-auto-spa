@@ -58,6 +58,9 @@ dependencies {
     // Material Icons Extended
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
 
+    // Lottie para animaciones
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
+
     // Firebase BoM, Auth y Firestore
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-auth-ktx")
