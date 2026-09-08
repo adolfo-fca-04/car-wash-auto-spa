@@ -14,6 +14,9 @@ import com.example.carwashautospa.ui.administrador.DashboardAdminScreen
 import com.example.carwashautospa.ui.auth.LoginScreen
 import com.example.carwashautospa.ui.auth.RegistroScreen
 import com.example.carwashautospa.ui.cliente.InicioClienteScreen
+import com.example.carwashautospa.ui.cliente.reserva.*
+import com.example.carwashautospa.ui.cliente.servicios.ServiciosScreen
+import com.example.carwashautospa.ui.cliente.vehiculos.*
 import com.example.carwashautospa.ui.operario.DashboardOperarioScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -23,6 +26,11 @@ sealed class Screen(val route: String) {
     object Registro : Screen("registro")
     object SplashAuth : Screen("splash_auth")
     object InicioCliente : Screen("inicio_cliente")
+    object MisVehiculos : Screen("mis_vehiculos")
+    object AgregarVehiculo : Screen("agregar_vehiculo")
+    object EditarVehiculo : Screen("editar_vehiculo/{vehiculoId}")
+    object ServiciosCliente : Screen("servicios_cliente")
+    object SeleccionarVehiculo : Screen("seleccionar_vehiculo/{servicioId}/{servicioNombre}")
     object DashboardOperario : Screen("dashboard_operario")
     object DashboardAdmin : Screen("dashboard_admin")
 }
@@ -42,6 +50,23 @@ fun AppNavigation() {
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginExitoso = {
+                    navController.navigate(Screen.SplashAuth.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onNavigateToRegistro = {
+                    navController.navigate(Screen.Registro.route)
+                }
+            )
+        }
+
+        // 2. REGISTRO
+        composable(Screen.Registro.route) {
+            RegistroScreen(
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                },
+                onRegisterSuccess = {
                     navController.navigate(Screen.SplashAuth.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
@@ -91,7 +116,109 @@ fun AppNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                onNavigateToVehiculos = { navController.navigate(Screen.MisVehiculos.route) },
+                onNavigateToReservar = { navController.navigate(Screen.ServiciosCliente.route) }
+            )
+        }
+
+        // --- MÓDULO VEHÍCULOS ---
+        composable(Screen.MisVehiculos.route) {
+            VehiculosScreen(
+                onNavigateToAgregar = { navController.navigate(Screen.AgregarVehiculo.route) },
+                onNavigateToEditar = { id -> navController.navigate("editar_vehiculo/$id") },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AgregarVehiculo.route) {
+            AgregarVehiculoScreen(
+                onVehiculoAgregado = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.EditarVehiculo.route) { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("vehiculoId") ?: ""
+            EditarVehiculoScreen(
+                vehiculoId = id,
+                onVehiculoEditado = { navController.popBackStack() }
+            )
+        }
+
+        // --- MÓDULO RESERVAS ---
+        composable(Screen.ServiciosCliente.route) {
+            ServiciosScreen(
+                onServicioSeleccionado = { id, nombre ->
+                    navController.navigate("seleccionar_vehiculo/$id/$nombre")
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.SeleccionarVehiculo.route) { backStackEntry ->
+            val sId = backStackEntry.arguments?.getString("servicioId") ?: ""
+            val sNom = backStackEntry.arguments?.getString("servicioNombre") ?: ""
+            SeleccionarVehiculoScreen(
+                onVehiculoSeleccionado = { vId ->
+                    navController.navigate("seleccionar_fecha/$sId/$sNom/$vId")
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("seleccionar_fecha/{servicioId}/{servicioNombre}/{vehiculoId}") { backStackEntry ->
+            val sId = backStackEntry.arguments?.getString("servicioId") ?: ""
+            val sNom = backStackEntry.arguments?.getString("servicioNombre") ?: ""
+            val vId = backStackEntry.arguments?.getString("vehiculoId") ?: ""
+            SeleccionarFechaScreen(
+                onFechaSeleccionada = { fecha ->
+                    val fechaLimpia = fecha.replace("/", "-")
+                    navController.navigate("seleccionar_horario/$sId/$sNom/$vId/$fechaLimpia")
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("seleccionar_horario/{servicioId}/{servicioNombre}/{vehiculoId}/{fecha}") { backStackEntry ->
+            val sId = backStackEntry.arguments?.getString("servicioId") ?: ""
+            val sNom = backStackEntry.arguments?.getString("servicioNombre") ?: ""
+            val vId = backStackEntry.arguments?.getString("vehiculoId") ?: ""
+            val fecha = backStackEntry.arguments?.getString("fecha")?.replace("-", "/") ?: ""
+            
+            SeleccionarHorarioScreen(
+                fecha = fecha,
+                onHorarioSeleccionado = { horario ->
+                    val fechaLimpia = fecha.replace("/", "-")
+                    navController.navigate("confirmar_reserva/$sId/$sNom/$vId/$fechaLimpia/${horario.id}/${horario.horaInicio}/${horario.capacidad}")
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("confirmar_reserva/{servicioId}/{servicioNombre}/{vehiculoId}/{fecha}/{horarioId}/{horaTexto}/{capacidad}") { backStackEntry ->
+            val sId = backStackEntry.arguments?.getString("servicioId") ?: ""
+            val sNom = backStackEntry.arguments?.getString("servicioNombre") ?: ""
+            val vId = backStackEntry.arguments?.getString("vehiculoId") ?: ""
+            val fecha = backStackEntry.arguments?.getString("fecha")?.replace("-", "/") ?: ""
+            val hId = backStackEntry.arguments?.getString("horarioId") ?: ""
+            val hTxt = backStackEntry.arguments?.getString("horaTexto") ?: ""
+            val cap = backStackEntry.arguments?.getString("capacidad")?.toIntOrNull() ?: 1
+
+            ConfirmarReservaScreen(
+                clienteId = auth.currentUser?.uid ?: "",
+                vehiculoId = vId,
+                servicioId = sId,
+                servicioNombre = sNom,
+                fecha = fecha,
+                horarioId = hId,
+                horaTexto = hTxt,
+                capacidadMaxima = cap,
+                onReservaExitosa = {
+                    navController.navigate(Screen.InicioCliente.route) {
+                        popUpTo(Screen.InicioCliente.route) { inclusive = true }
+                    }
+                },
+                onBack = { navController.popBackStack() }
             )
         }
 

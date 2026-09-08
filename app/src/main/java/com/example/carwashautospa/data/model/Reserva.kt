@@ -1,5 +1,9 @@
 package com.example.carwashautospa.data.model
 
+/**
+ * Modelo de Reserva integrado con el ciclo de lavado de EstadoAtencion.
+ * Mantiene compatibilidad con horarioId de la rama main.
+ */
 data class Reserva(
     val id: String = "",
     val clienteId: String = "",
@@ -9,5 +13,7 @@ data class Reserva(
     val horarioId: String = "",
     val fecha: String = "",
     val hora: String = "",
-    val estado: String = "PENDIENTE"
-)
+    val estado: String = EstadoAtencion.RESERVADA.codigo
+) {
+    fun obtenerEstadoAtencion(): EstadoAtencion = EstadoAtencion.desdeCodigo(estado)
+}
