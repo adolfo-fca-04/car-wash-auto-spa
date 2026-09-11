@@ -1,5 +1,6 @@
 package com.example.carwashautospa.ui.cliente.reserva
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +20,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MisReservasScreen(
+    onReservaClick: (String) -> Unit,
     onBack: () -> Unit
 ) {
     val auth = FirebaseAuth.getInstance()
@@ -35,7 +37,8 @@ fun MisReservasScreen(
             .addSnapshotListener { snapshot, error ->
                 if (error == null && snapshot != null) {
                     val reservas = snapshot.toObjects(Reserva::class.java)
-                    listaReservas = reservas
+                    // Mostrar solo las que no están terminadas o canceladas en esta vista
+                    listaReservas = reservas.filter { it.estado != "ENTREGADO" && it.estado != "CANCELADA" }
                 }
                 cargando = false
             }
@@ -56,7 +59,7 @@ fun MisReservasScreen(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (listaReservas.isEmpty()) {
                 Text(
-                    text = "No tienes reservas registradas.",
+                    text = "No tienes reservas activas.",
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
@@ -66,6 +69,7 @@ fun MisReservasScreen(
                     items(listaReservas) { reserva ->
                         ReservaCard(
                             reserva = reserva,
+                            onClick = { onReservaClick(reserva.id) },
                             onCancelar = {
                                 db.collection("reservas")
                                     .document(reserva.id)
@@ -82,6 +86,7 @@ fun MisReservasScreen(
 @Composable
 fun ReservaCard(
     reserva: Reserva,
+    onClick: () -> Unit,
     onCancelar: () -> Unit
 ) {
     val db = FirebaseFirestore.getInstance()
@@ -110,7 +115,9 @@ fun ReservaCard(
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier

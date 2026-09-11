@@ -110,36 +110,38 @@ fun procesarReservaConTransaccion(
         return
     }
 
-    val horarioRef = db.collection("horarios").document(horarioId)
-    val nuevaReservaRef = db.collection("reservas").document()
+    // 1. Contar cuántas reservas existen ya para esta fecha y hora
+    db.collection("reservas")
+        .whereEqualTo("fecha", fecha)
+        .whereEqualTo("hora", horaTexto)
+        .get()
+        .addOnSuccessListener { snapshot ->
+            val ocupados = snapshot.size()
 
-    db.runTransaction { transaction ->
-        val horarioSnapshot = transaction.get(horarioRef)
-        val cuposOcupados = horarioSnapshot.getLong("cuposOcupados") ?: 0L
+            if (ocupados >= capacidadMaxima) {
+                onError("❌ Lo sentimos, el horario se acaba de llenar.\nPor favor elige otro momento.")
+            } else {
+                // 2. Si hay cupo, procedemos a crear la reserva
+                val nuevaReservaRef = db.collection("reservas").document()
+                val datosReserva = mapOf(
+                    "id" to nuevaReservaRef.id,
+                    "clienteId" to clienteId,
+                    "vehiculoId" to vehiculoId,
+                    "servicioId" to servicioId,
+                    "servicioNombre" to servicioNombre,
+                    "horarioId" to horarioId,
+                    "fecha" to fecha,
+                    "hora" to horaTexto,
+                    "estado" to "RESERVADA",
+                    "timestamp" to Timestamp.now()
+                )
 
-        if (cuposOcupados >= capacidadMaxima) {
-            throw Exception("❌ No puedes reservar este horario.\n\nEl horario seleccionado ya alcanzó su capacidad máxima.")
+                nuevaReservaRef.set(datosReserva)
+                    .addOnSuccessListener { onSuccess() }
+                    .addOnFailureListener { e -> onError("Error al guardar: ${e.message}") }
+            }
         }
-
-        val datosReserva = mapOf(
-            "id" to nuevaReservaRef.id,
-            "clienteId" to clienteId,
-            "vehiculoId" to vehiculoId,
-            "servicioId" to servicioId,
-            "servicioNombre" to servicioNombre,
-            "horarioId" to horarioId,
-            "fecha" to fecha,
-            "hora" to horaTexto,
-            "estado" to "RESERVADA",
-            "timestamp" to Timestamp.now()
-        )
-        transaction.set(nuevaReservaRef, datosReserva)
-        transaction.update(horarioRef, "cuposOcupados", cuposOcupados + 1)
-
-        null
-    }.addOnSuccessListener {
-        onSuccess()
-    }.addOnFailureListener { exception ->
-        onError(exception.message ?: "Error al procesar la reserva.")
-    }
+        .addOnFailureListener { e ->
+            onError("Error al verificar disponibilidad: ${e.message}")
+        }
 }

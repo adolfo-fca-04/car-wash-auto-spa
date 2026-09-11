@@ -14,15 +14,16 @@ import com.example.carwashautospa.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.carwashautospa.data.model.Horario
-import com.example.carwashautospa.ui.administrador.DashboardAdminScreen
-import com.example.carwashautospa.ui.auth.LoginScreen
-import com.example.carwashautospa.ui.auth.RegistroScreen
+import com.example.carwashautospa.ui.administrador.*
+import com.example.carwashautospa.ui.auth.*
 import com.example.carwashautospa.ui.cliente.InicioClienteScreen
+import com.example.carwashautospa.ui.cliente.historial.DetalleHistorialScreen
+import com.example.carwashautospa.ui.cliente.historial.HistorialScreen
 import com.example.carwashautospa.ui.cliente.reserva.*
+import com.example.carwashautospa.ui.cliente.seguimiento.SeguimientoScreen
 import com.example.carwashautospa.ui.cliente.servicios.ServiciosScreen
 import com.example.carwashautospa.ui.cliente.vehiculos.*
-import com.example.carwashautospa.ui.operario.DashboardOperarioScreen
+import com.example.carwashautospa.ui.operario.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -37,7 +38,19 @@ sealed class Screen(val route: String) {
     object ServiciosCliente : Screen("servicios_cliente")
     object SeleccionarVehiculo : Screen("seleccionar_vehiculo/{servicioId}/{servicioNombre}")
     object DashboardOperario : Screen("dashboard_operario")
+    object AtencionesOperario : Screen("atenciones_operario")
+    object DetalleAtencionOperario : Screen("detalle_atencion_operario/{reservaId}")
+    object CambiarEstado : Screen("cambiar_estado/{reservaId}")
+    object MisReservas : Screen("mis_reservas")
+    object HistorialCliente : Screen("historial_cliente")
+    object DetalleHistorial : Screen("detalle_historial/{reservaId}")
+    object SeguimientoCliente : Screen("seguimiento_cliente/{reservaId}")
     object DashboardAdmin : Screen("dashboard_admin")
+    object UsuariosAdmin : Screen("usuarios_admin")
+    object ServiciosAdmin : Screen("servicios_admin")
+    object HorariosAdmin : Screen("horarios_admin")
+    object ReservasAdmin : Screen("reservas_admin")
+    object ReportesAdmin : Screen("reportes_admin")
 }
 
 @Composable
@@ -139,7 +152,31 @@ fun AppNavigation() {
                     }
                 },
                 onNavigateToVehiculos = { navController.navigate(Screen.MisVehiculos.route) },
-                onNavigateToReservar = { navController.navigate(Screen.ServiciosCliente.route) }
+                onNavigateToReservar = { navController.navigate(Screen.ServiciosCliente.route) },
+                onNavigateToSeguimiento = { navController.navigate(Screen.MisReservas.route) },
+                onNavigateToHistorial = { navController.navigate(Screen.HistorialCliente.route) }
+            )
+        }
+
+        composable(Screen.MisReservas.route) {
+            MisReservasScreen(
+                onReservaClick = { id -> navController.navigate("seguimiento_cliente/$id") },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.HistorialCliente.route) {
+            HistorialScreen(
+                onSeleccionarHistorial = { id -> navController.navigate("detalle_historial/$id") },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("detalle_historial/{reservaId}") { backStackEntry ->
+            val rId = backStackEntry.arguments?.getString("reservaId") ?: ""
+            DetalleHistorialScreen(
+                reservaId = rId,
+                onBack = { navController.popBackStack() }
             )
         }
 
@@ -250,18 +287,80 @@ fun AppNavigation() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                onNavigateToAtenciones = { navController.navigate(Screen.AtencionesOperario.route) }
+            )
+        }
+
+        composable(Screen.AtencionesOperario.route) {
+            AtencionesScreen(
+                onSeleccionarAtencion = { reservaId ->
+                    navController.navigate("detalle_atencion_operario/$reservaId")
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("detalle_atencion_operario/{reservaId}") { backStackEntry ->
+            val rId = backStackEntry.arguments?.getString("reservaId") ?: ""
+            DetalleAtencionScreen(
+                reservaId = rId,
+                onNavigateToCambiarEstado = { id -> navController.navigate("cambiar_estado/$id") },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("cambiar_estado/{reservaId}") { backStackEntry ->
+            val rId = backStackEntry.arguments?.getString("reservaId") ?: ""
+            CambiarEstadoScreen(
+                reservaId = rId,
+                onEstadoCambiado = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("seguimiento_cliente/{reservaId}") { backStackEntry ->
+            val rId = backStackEntry.arguments?.getString("reservaId") ?: ""
+            SeguimientoScreen(
+                reservaId = rId,
+                onBack = { navController.popBackStack() }
             )
         }
 
         composable(Screen.DashboardAdmin.route) {
             DashboardAdminScreen(
-                onNavigateToUsuarios = { /* Navegar a Usuarios */ },
-                onNavigateToServicios = { /* Navegar a Servicios */ },
-                onNavigateToHorarios = { /* Navegar a Horarios */ },
-                onNavigateToReservas = { /* Navegar a Reservas */ },
-                onNavigateToReportes = { /* Navegar a Reportes */ }
+                onCerrarSesion = {
+                    auth.signOut()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToUsuarios = { navController.navigate(Screen.UsuariosAdmin.route) },
+                onNavigateToServicios = { navController.navigate(Screen.ServiciosAdmin.route) },
+                onNavigateToHorarios = { navController.navigate(Screen.HorariosAdmin.route) },
+                onNavigateToReservas = { navController.navigate(Screen.ReservasAdmin.route) },
+                onNavigateToReportes = { navController.navigate(Screen.ReportesAdmin.route) }
             )
+        }
+
+        composable(Screen.UsuariosAdmin.route) {
+            UsuariosScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.ServiciosAdmin.route) {
+            ServiciosAdminScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.HorariosAdmin.route) {
+            HorariosAdminScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.ReservasAdmin.route) {
+            ReservasAdminScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.ReportesAdmin.route) {
+            ReportesScreen(onBack = { navController.popBackStack() })
         }
     }
 }
